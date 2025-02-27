@@ -1,37 +1,72 @@
-// leitor de qr code
-const qrcode = require('qrcode-terminal');
-const { Client, Buttons, List, MessageMedia } = require('whatsapp-web.js'); // Mudança Buttons
+const express = require('express');
+const qrcode = require('qrcode');
+const { Client } = require('whatsapp-web.js');
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Inicializa o cliente do WhatsApp
 const client = new Client();
-// serviço de leitura do qr code
-client.on('qr', qr => {
-    qrcode.generate(qr, {small: true});
+
+// Variável para armazenar o QR Code
+let qrCodeData = '';
+
+client.on('qr', async (qr) => {
+  console.log('QR Code gerado!');
+  qrCodeData = qr; // Armazena o QR Code
 });
-// apos isso ele diz que foi tudo certo
+
 client.on('ready', () => {
-    console.log('Tudo certo! WhatsApp conectado.');
+  console.log('Tudo certo! WhatsApp conectado.');
 });
-// E inicializa tudo 
+
 client.initialize();
 
-const delay = ms => new Promise(res => setTimeout(res, ms)); // Função que usamos para criar o delay entre uma ação e outra
-
-// Funil
-
-client.on('message', async msg => {
-
-    if (msg.body.match(/(menu|Menu|dia|tarde|noite|oi|Oi|Olá|olá|ola|Ola|Quero|quero|Queria|queria)/i) && msg.from.endsWith('@c.us')) {
-
-        const chat = await msg.getChat();
-
-        await delay(3000); //delay de 3 segundos
-        await chat.sendStateTyping(); // Simulando Digitação
-        await delay(3000); //Delay de 3000 milisegundos mais conhecido como 3 segundos
-        const contact = await msg.getContact(); //Pegando o contato
-        const name = contact.pushname; //Pegando o nome do contato
-        await client.sendMessage(msg.from,'Olá '+ name.split(" ")[0] + '\nSou o assistente virtual da Barbearia Hebreus 🤖💈\n\nComo posso ajudar hoje? Por favor, digite o número da opção desejada.\n\n1 - Quero agendar meu horário\n2 - Conheça o Clube de Assinatura Hebreus VIP\n3 - Onde estamos\n4 - Horário de atendimento'); //Primeira mensagem de texto
-    
-        
+// Rota para exibir o QR Code
+app.get('/', async (req, res) => {
+  try {
+    if (!qrCodeData) {
+      return res.send('Aguardando geração do QR Code...');
     }
+
+    // Gera uma imagem do QR Code
+    const qrImage = await qrcode.toDataURL(qrCodeData);
+
+    // Exibe a imagem em uma página HTML
+    res.send(`
+      <html>
+        <body>
+          <h1>Escaneie o QR Code para conectar ao WhatsApp</h1>
+          <img src="${qrImage}" alt="QR Code" />
+        </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error('Erro ao gerar o QR Code:', error);
+    res.status(500).send('Erro ao gerar o QR Code');
+  }
+});
+
+// Inicia o servidor
+app.listen(port, () => {
+  console.log(`Servidor rodando em http://localhost:${port}`);
+});
+
+// Funil de mensagens
+client.on('message', async (msg) => {
+  if (msg.body.match(/(menu|Menu|dia|tarde|noite|oi|Oi|Olá|olá|ola|Ola|Quero|quero|Queria|queria)/i) && msg.from.endsWith('@c.us')) {
+    const chat = await msg.getChat();
+    const contact = await msg.getContact();
+    const name = contact.pushname;
+
+    await chat.sendStateTyping(); // Simulando digitação
+    await new Promise((resolve) => setTimeout(resolve, 3000)); // Delay de 3 segundos
+
+    await client.sendMessage(
+      msg.from,
+      `Olá ${name.split(' ')[0]}! 👋\nSou o assistente virtual da Barbearia Hebreus 🤖💈\n\nComo posso ajudar hoje? Por favor, digite o número da opção desejada:\n\n1 - Quero agendar meu horário\n2 - Conheça o Clube de Assinatura Hebreus VIP\n3 - Onde estamos\n4 - Horário de atendimento`
+    );
+  }
 
 
 
