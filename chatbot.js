@@ -74,6 +74,9 @@ client.on('message', async (msg) => {
       const contact = await msg.getContact();
       const name = contact.pushname;
 
+      console.log('Chat obtido:', chat.id._serialized); // Log do chat
+      console.log('Contato obtido:', contact.id._serialized); // Log do contato
+
       await chat.sendStateTyping(); // Simula digitação
       await new Promise((resolve) => setTimeout(resolve, 3000)); // Delay de 3 segundos
 
@@ -86,6 +89,7 @@ client.on('message', async (msg) => {
 
     // Respostas para as opções selecionadas
     if (msg.body === '1') {
+      console.log('Opção 1 selecionada'); // Log da opção 1
       const chat = await msg.getChat();
       await chat.sendStateTyping();
       await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -93,6 +97,7 @@ client.on('message', async (msg) => {
     }
 
     if (msg.body === '2') {
+      console.log('Opção 2 selecionada'); // Log da opção 2
       const chat = await msg.getChat();
       await chat.sendStateTyping();
       await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -104,6 +109,7 @@ client.on('message', async (msg) => {
     }
 
     if (msg.body === '3') {
+      console.log('Opção 3 selecionada'); // Log da opção 3
       const chat = await msg.getChat();
       await chat.sendStateTyping();
       await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -115,6 +121,7 @@ client.on('message', async (msg) => {
     }
 
     if (msg.body === '4') {
+      console.log('Opção 4 selecionada'); // Log da opção 4
       const chat = await msg.getChat();
       await chat.sendStateTyping();
       await new Promise((resolve) => setTimeout(resolve, 3000));
