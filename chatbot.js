@@ -74,9 +74,6 @@ client.on('message', async (msg) => {
       const contact = await msg.getContact();
       const name = contact.pushname;
 
-      console.log('Chat obtido:', chat.id._serialized); // Log do chat
-      console.log('Contato obtido:', contact.id._serialized); // Log do contato
-
       await chat.sendStateTyping(); // Simula digitação
       await new Promise((resolve) => setTimeout(resolve, 3000)); // Delay de 3 segundos
 
