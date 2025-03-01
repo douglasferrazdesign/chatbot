@@ -4,8 +4,14 @@
   "description": "Chatbot para WhatsApp",
   "main": "chatbot.js",
   "scripts": {
-    "start": "node chatbot.js"
+    "start": "node chatbot.js",
+    "dev": "nodemon chatbot.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/douglasferrazdesign/chatbot.git"
+  },
+  "license": "MIT",
   "dependencies": {
     "express": "^4.21.2",
     "moment-timezone": "^0.5.45",
