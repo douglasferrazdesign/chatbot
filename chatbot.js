@@ -1,34 +1,26 @@
-const express = require('express');
-const qrcode = require('qrcode'); // Substitua qrcode-terminal por qrcode
-const { Client, Buttons, List, MessageMedia } = require('whatsapp-web.js');
-const app = express();
-const port = process.env.PORT || 10000;
-
+// leitor de qr code
+const qrcode = require('qrcode');
+const { Client, Buttons, List, MessageMedia } = require('whatsapp-web.js'); // Mudança Buttons
 const client = new Client();
-
-// Variável para armazenar o QR Code em formato de imagem (base64)
-let qrCodeImage = null;
-
-// Gera o QR Code e armazena a imagem
-client.on('qr', async (qr) => {
-    qrCodeImage = await qrcode.toDataURL(qr); // Converte o QR Code para uma imagem em base64
-    console.log('QR Code gerado!');
+// serviço de leitura do qr code
+client.on('qr', qr => {
+    qrcode.generate(qr, {small: true});
 });
-
-// Após a conexão, limpa o QR Code
+// apos isso ele diz que foi tudo certo
 client.on('ready', () => {
     console.log('Tudo certo! WhatsApp conectado.');
-    qrCodeImage = null; // Limpa o QR Code após a conexão
 });
-
-// Inicializa o cliente do WhatsApp
+// E inicializa tudo 
 client.initialize();
 
-const delay = ms => new Promise(res => setTimeout(res, ms)); // Função para criar delays
+const delay = ms => new Promise(res => setTimeout(res, ms)); // Função que usamos para criar o delay entre uma ação e outra
 
-// Funil de mensagens
+// Funil
+
 client.on('message', async msg => {
+
     if (msg.body.match(/(menu|Menu|dia|tarde|noite|oi|Oi|Olá|olá|ola|Ola)/i) && msg.from.endsWith('@c.us')) {
+
         const chat = await msg.getChat();
 
         await delay(3000); //delay de 3 segundos
@@ -40,19 +32,28 @@ client.on('message', async msg => {
         await delay(3000); //delay de 3 segundos
         await chat.sendStateTyping(); // Simulando Digitação
         await delay(5000); //Delay de 5 segundos
+    
+        
     }
+
+
+
 
     if (msg.body !== null && msg.body === '1' && msg.from.endsWith('@c.us')) {
         const chat = await msg.getChat();
+
 
         await delay(3000); //delay de 3 segundos
         await chat.sendStateTyping(); // Simulando Digitação
         await delay(3000);
         await client.sendMessage(msg.from, 'Ok, aguarde um instante que um membro da nossa equipe já irá te atender. Blz?\n\nCaso prefira, você também pode agendar pelo nosso app, acesse https://cashbarber.com.br/Hebreusvip');
+
+
     }
 
     if (msg.body !== null && msg.body === '2' && msg.from.endsWith('@c.us')) {
         const chat = await msg.getChat();
+
 
         await delay(3000); //Delay de 3000 milisegundos mais conhecido como 3 segundos
         await chat.sendStateTyping(); // Simulando Digitação
@@ -68,6 +69,7 @@ client.on('message', async msg => {
     if (msg.body !== null && msg.body === '3' && msg.from.endsWith('@c.us')) {
         const chat = await msg.getChat();
 
+
         await delay(3000); //Delay de 3000 milisegundos mais conhecido como 3 segundos
         await chat.sendStateTyping(); // Simulando Digitação
         await delay(3000);
@@ -77,6 +79,7 @@ client.on('message', async msg => {
         await chat.sendStateTyping(); // Simulando Digitação
         await delay(3000);
         await client.sendMessage(msg.from, 'Pronto, clique no link e sua próxima parada será a Barbearia Hebreus: https://maps.app.goo.gl/G5tZJLGBtx6oa26S7');
+
     }
 
     if (msg.body !== null && msg.body === '4' && msg.from.endsWith('@c.us')) {
@@ -87,32 +90,14 @@ client.on('message', async msg => {
         await delay(3000);
         await client.sendMessage(msg.from, 'Nós atendemos de *segunda à sexta das 09h às 20h e aos sábados das 08h às 18h*. Estamos localizados na Avenida Iraí, 1292, Lj. 05, Weissópolis, em Pinhais/PR.\n\nBora agendar seu horário?');
 
+
         await delay(3000); //delay de 3 segundos
         await chat.sendStateTyping(); // Simulando Digitação
         await delay(3000);
         await client.sendMessage(msg.from, 'Você pode agendar seu horário pelo app, acesse https://cashbarber.com.br/Hebreusvip');
-    }
-});
 
-// Rota para exibir o QR Code na página web
-app.get('/', (req, res) => {
-    if (qrCodeImage) {
-        // Se o QR Code estiver disponível, exibe na página
-        res.send(`
-            <h1>Chatbot está rodando!</h1>
-            <p>Escaneie o QR Code abaixo para conectar o WhatsApp:</p>
-            <img src="${qrCodeImage}" alt="QR Code" />
-        `);
-    } else {
-        // Se não houver QR Code, exibe uma mensagem de status
-        res.send(`
-            <h1>Chatbot está rodando!</h1>
-            <p>WhatsApp já conectado. Aguarde mensagens.</p>
-        `);
-    }
-});
 
-// Inicia o servidor
-app.listen(port, () => {
-    console.log(`Servidor rodando na porta ${port}`);
+    }
+
+
 });
