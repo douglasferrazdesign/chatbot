@@ -4,7 +4,8 @@
   "description": "Chatbot para WhatsApp",
   "main": "chatbot.js",
   "scripts": {
-    "start": "node chatbot.js"
+    "start": "node chatbot.js",
+    "dev": "nodemon chatbot.js"
   },
   "dependencies": {
     "moment-timezone": "^0.5.45",
