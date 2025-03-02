@@ -1,26 +1,75 @@
+const fs = require('fs');
 const qrcode = require('qrcode-terminal');
-const { Client, Buttons, List, MessageMedia } = require('whatsapp-web.js');
-const http = require('http'); // Adicionando o módulo HTTP
+const { Client } = require('whatsapp-web.js');
+const http = require('http');
 
-const client = new Client();
+// Caminho para salvar a sessão
+const SESSION_FILE_PATH = './session.json';
+let sessionData;
 
-// Serviço de leitura do QR code
+// Verifica se já existe uma sessão salva
+if (fs.existsSync(SESSION_FILE_PATH)) {
+    sessionData = require(SESSION_FILE_PATH);
+    console.log('Sessão carregada do arquivo session.json');
+}
+
+// Configuração do cliente com sessão persistente
+const client = new Client({
+    session: sessionData,
+    puppeteer: {
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    },
+});
+
+// Gerar QR Code
 client.on('qr', qr => {
+    console.log('QR Code gerado! Escaneie com o seu WhatsApp.');
     qrcode.generate(qr, { small: true });
 });
 
-// Após a conexão, exibe uma mensagem de sucesso
+// Salvar sessão quando autenticado
+client.on('authenticated', (session) => {
+    console.log('Autenticado com sucesso!');
+    sessionData = session;
+    fs.writeFileSync(SESSION_FILE_PATH, JSON.stringify(session));
+    console.log('Sessão salva em session.json');
+});
+
+// Quando estiver pronto
 client.on('ready', () => {
     console.log('Tudo certo! WhatsApp conectado.');
 });
 
-// Inicializa o cliente
+// Lidar com erros de autenticação
+client.on('auth_failure', (msg) => {
+    console.error('Falha na autenticação:', msg);
+    // Remove o arquivo de sessão se a autenticação falhar
+    if (fs.existsSync(SESSION_FILE_PATH)) {
+        fs.unlinkSync(SESSION_FILE_PATH);
+        console.log('Arquivo session.json removido devido à falha na autenticação.');
+    }
+});
+
+// Lidar com desconexões
+client.on('disconnected', (reason) => {
+    console.log('Desconectado:', reason);
+    // Remove o arquivo de sessão se o cliente for desconectado
+    if (fs.existsSync(SESSION_FILE_PATH)) {
+        fs.unlinkSync(SESSION_FILE_PATH);
+        console.log('Arquivo session.json removido devido à desconexão.');
+    }
+});
+
+// Inicializar o cliente
 client.initialize();
 
-const delay = ms => new Promise(res => setTimeout(res, ms)); // Função para criar delays
+// Função para criar delays
+const delay = ms => new Promise(res => setTimeout(res, ms));
 
 // Funil de mensagens
 client.on('message', async msg => {
+    console.log('Mensagem recebida:', msg.body); // Log para depuração
+
     if (msg.body.match(/(menu|Menu|dia|tarde|noite|oi|Oi|Olá|olá|ola|Ola)/i) && msg.from.endsWith('@c.us')) {
         const chat = await msg.getChat();
         await delay(3000);
